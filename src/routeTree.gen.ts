@@ -9,38 +9,149 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PanelRouteImport } from './routes/_panel'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PanelTiendaRouteImport } from './routes/_panel.tienda'
+import { Route as PanelProductosRouteImport } from './routes/_panel.productos'
+import { Route as PanelInventarioRouteImport } from './routes/_panel.inventario'
+import { Route as PanelDashboardRouteImport } from './routes/_panel.dashboard'
+import { Route as PanelCategoriasRouteImport } from './routes/_panel.categorias'
+import { Route as PanelApiDocsRouteImport } from './routes/_panel.api-docs'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelRoute = PanelRouteImport.update({
+  id: '/_panel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PanelTiendaRoute = PanelTiendaRouteImport.update({
+  id: '/tienda',
+  path: '/tienda',
+  getParentRoute: () => PanelRoute,
+} as any)
+const PanelProductosRoute = PanelProductosRouteImport.update({
+  id: '/productos',
+  path: '/productos',
+  getParentRoute: () => PanelRoute,
+} as any)
+const PanelInventarioRoute = PanelInventarioRouteImport.update({
+  id: '/inventario',
+  path: '/inventario',
+  getParentRoute: () => PanelRoute,
+} as any)
+const PanelDashboardRoute = PanelDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => PanelRoute,
+} as any)
+const PanelCategoriasRoute = PanelCategoriasRouteImport.update({
+  id: '/categorias',
+  path: '/categorias',
+  getParentRoute: () => PanelRoute,
+} as any)
+const PanelApiDocsRoute = PanelApiDocsRouteImport.update({
+  id: '/api-docs',
+  path: '/api-docs',
+  getParentRoute: () => PanelRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/api-docs': typeof PanelApiDocsRoute
+  '/categorias': typeof PanelCategoriasRoute
+  '/dashboard': typeof PanelDashboardRoute
+  '/inventario': typeof PanelInventarioRoute
+  '/productos': typeof PanelProductosRoute
+  '/tienda': typeof PanelTiendaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/api-docs': typeof PanelApiDocsRoute
+  '/categorias': typeof PanelCategoriasRoute
+  '/dashboard': typeof PanelDashboardRoute
+  '/inventario': typeof PanelInventarioRoute
+  '/productos': typeof PanelProductosRoute
+  '/tienda': typeof PanelTiendaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_panel': typeof PanelRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_panel/api-docs': typeof PanelApiDocsRoute
+  '/_panel/categorias': typeof PanelCategoriasRoute
+  '/_panel/dashboard': typeof PanelDashboardRoute
+  '/_panel/inventario': typeof PanelInventarioRoute
+  '/_panel/productos': typeof PanelProductosRoute
+  '/_panel/tienda': typeof PanelTiendaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/api-docs'
+    | '/categorias'
+    | '/dashboard'
+    | '/inventario'
+    | '/productos'
+    | '/tienda'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/api-docs'
+    | '/categorias'
+    | '/dashboard'
+    | '/inventario'
+    | '/productos'
+    | '/tienda'
+  id:
+    | '__root__'
+    | '/'
+    | '/_panel'
+    | '/auth'
+    | '/_panel/api-docs'
+    | '/_panel/categorias'
+    | '/_panel/dashboard'
+    | '/_panel/inventario'
+    | '/_panel/productos'
+    | '/_panel/tienda'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PanelRoute: typeof PanelRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_panel': {
+      id: '/_panel'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PanelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +159,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_panel/tienda': {
+      id: '/_panel/tienda'
+      path: '/tienda'
+      fullPath: '/tienda'
+      preLoaderRoute: typeof PanelTiendaRouteImport
+      parentRoute: typeof PanelRoute
+    }
+    '/_panel/productos': {
+      id: '/_panel/productos'
+      path: '/productos'
+      fullPath: '/productos'
+      preLoaderRoute: typeof PanelProductosRouteImport
+      parentRoute: typeof PanelRoute
+    }
+    '/_panel/inventario': {
+      id: '/_panel/inventario'
+      path: '/inventario'
+      fullPath: '/inventario'
+      preLoaderRoute: typeof PanelInventarioRouteImport
+      parentRoute: typeof PanelRoute
+    }
+    '/_panel/dashboard': {
+      id: '/_panel/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof PanelDashboardRouteImport
+      parentRoute: typeof PanelRoute
+    }
+    '/_panel/categorias': {
+      id: '/_panel/categorias'
+      path: '/categorias'
+      fullPath: '/categorias'
+      preLoaderRoute: typeof PanelCategoriasRouteImport
+      parentRoute: typeof PanelRoute
+    }
+    '/_panel/api-docs': {
+      id: '/_panel/api-docs'
+      path: '/api-docs'
+      fullPath: '/api-docs'
+      preLoaderRoute: typeof PanelApiDocsRouteImport
+      parentRoute: typeof PanelRoute
+    }
   }
 }
 
+interface PanelRouteChildren {
+  PanelApiDocsRoute: typeof PanelApiDocsRoute
+  PanelCategoriasRoute: typeof PanelCategoriasRoute
+  PanelDashboardRoute: typeof PanelDashboardRoute
+  PanelInventarioRoute: typeof PanelInventarioRoute
+  PanelProductosRoute: typeof PanelProductosRoute
+  PanelTiendaRoute: typeof PanelTiendaRoute
+}
+
+const PanelRouteChildren: PanelRouteChildren = {
+  PanelApiDocsRoute: PanelApiDocsRoute,
+  PanelCategoriasRoute: PanelCategoriasRoute,
+  PanelDashboardRoute: PanelDashboardRoute,
+  PanelInventarioRoute: PanelInventarioRoute,
+  PanelProductosRoute: PanelProductosRoute,
+  PanelTiendaRoute: PanelTiendaRoute,
+}
+
+const PanelRouteWithChildren = PanelRoute._addFileChildren(PanelRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PanelRoute: PanelRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
