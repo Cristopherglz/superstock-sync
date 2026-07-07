@@ -56,7 +56,7 @@ function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold">Buen día, {user?.name.split(" ")[0]} 👋</h1>
+          <h1 className="font-display text-3xl font-bold">Buen día, {user?.name.split(" ")[0]}</h1>
           <p className="text-muted-foreground mt-1">
             Un vistazo a la operación de tu supermercado en tiempo real.
           </p>
@@ -106,23 +106,23 @@ function Dashboard() {
               <AreaChart data={SALES_LAST_7_DAYS}>
                 <defs>
                   <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="oklch(0.55 0.18 255)" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="oklch(0.55 0.18 255)" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.015 245)" vertical={false} />
-                <XAxis dataKey="day" stroke="oklch(0.5 0.03 250)" fontSize={12} />
-                <YAxis stroke="oklch(0.5 0.03 250)" fontSize={12} tickFormatter={(v) => "$" + (v / 1000) + "k"} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <XAxis dataKey="day" stroke="#6b7280" fontSize={12} />
+                <YAxis stroke="#6b7280" fontSize={12} tickFormatter={(v) => "$" + (v / 1000) + "k"} />
                 <Tooltip
                   contentStyle={{
                     background: "white",
-                    border: "1px solid oklch(0.92 0.015 245)",
+                    border: "1px solid #e5e7eb",
                     borderRadius: 12,
                     boxShadow: "0 10px 30px -10px rgba(30,64,175,0.2)",
                   }}
                   formatter={(v: number) => fmt(v)}
                 />
-                <Area type="monotone" dataKey="sales" stroke="oklch(0.52 0.18 255)" strokeWidth={2.5} fill="url(#salesGrad)" />
+                <Area type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2.5} fill="url(#salesGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -136,10 +136,10 @@ function Dashboard() {
           <div className="h-72">
             <ResponsiveContainer>
               <BarChart data={byCategory} layout="vertical" margin={{ left: 20 }}>
-                <XAxis type="number" stroke="oklch(0.5 0.03 250)" fontSize={11} />
-                <YAxis type="category" dataKey="name" stroke="oklch(0.5 0.03 250)" fontSize={11} width={100} />
-                <Tooltip cursor={{ fill: "oklch(0.96 0.02 245)" }} contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.92 0.015 245)" }} />
-                <Bar dataKey="stock" radius={[0, 8, 8, 0]} fill="oklch(0.55 0.18 255)" />
+                <XAxis type="number" stroke="#6b7280" fontSize={11} />
+                <YAxis type="category" dataKey="name" stroke="#6b7280" fontSize={11} width={100} />
+                <Tooltip cursor={{ fill: "#f1f5f9" }} contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb" }} />
+                <Bar dataKey="stock" radius={[0, 8, 8, 0]} fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
           </div>
