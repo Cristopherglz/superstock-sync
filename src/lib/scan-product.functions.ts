@@ -1,6 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 
 type ScanInput = { imageDataUrl: string; categories: { id: string; name: string }[]; suppliers: string[] };
+export type ScannedProduct = {
+  name?: string;
+  barcode?: string;
+  category?: string;
+  supplier?: string;
+  price?: number;
+  cost?: number;
+  minStock?: number;
+};
 
 export const scanProductFromImage = createServerFn({ method: "POST" })
   .inputValidator((input: ScanInput) => input)
