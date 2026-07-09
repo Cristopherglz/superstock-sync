@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useApp } from "@/lib/store";
 import { CATEGORIES, SUPPLIERS } from "@/lib/mock-data";
 import type { Product } from "@/lib/mock-data";
+import { scanProductFromImage } from "@/lib/scan-product.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Package, Filter } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, Filter, Camera, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_panel/productos")({
@@ -55,6 +56,9 @@ function ProductosPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [scanning, setScanning] = useState(false);
+  const [scanPreview, setScanPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = products.filter((p) => {
     const matchesQ =
@@ -69,8 +73,58 @@ function ProductosPage() {
   const openNew = () => {
     setEditing(null);
     setDraft(emptyDraft);
+    setScanPreview(null);
     setOpen(true);
   };
+
+  const handleScanFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecciona una imagen válida");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      setScanPreview(dataUrl);
+      setScanning(true);
+      const t = toast.loading("Analizando paquete con IA...");
+      try {
+        const result = await scanProductFromImage({
+          data: {
+            imageDataUrl: dataUrl,
+            categories: CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
+            suppliers: [...SUPPLIERS],
+          },
+        });
+        const validCat = CATEGORIES.find((c) => c.id === result.category)?.id ?? draft.category;
+        const validSup = SUPPLIERS.find((s) => s === result.supplier) ?? draft.supplier;
+        const genSku =
+          (result.name ?? "SKU").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) +
+          "-" +
+          Math.floor(Math.random() * 900 + 100);
+        setDraft((d) => ({
+          ...d,
+          name: result.name ?? d.name,
+          barcode: result.barcode || d.barcode,
+          category: validCat,
+          supplier: validSup,
+          price: typeof result.price === "number" ? result.price : d.price,
+          cost: typeof result.cost === "number" ? result.cost : d.cost,
+          minStock: typeof result.minStock === "number" ? result.minStock : d.minStock,
+          image: dataUrl,
+          sku: d.sku || genSku,
+        }));
+        toast.success("Datos extraídos del paquete", { id: t });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Error al escanear";
+        toast.error(msg, { id: t });
+      } finally {
+        setScanning(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   const openEdit = (p: Product) => {
     setEditing(p);
@@ -114,12 +168,59 @@ function ProductosPage() {
               <Plus className="h-4 w-4" /> Nuevo producto
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-display text-xl">
                 {editing ? "Editar producto" : "Nuevo producto"}
               </DialogTitle>
             </DialogHeader>
+
+            {!editing && (
+              <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-gradient-brand p-2 shadow-elegant">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm">Escanear paquete con IA</div>
+                    <div className="text-xs text-muted-foreground">
+                      Toma una foto del producto y completaremos automáticamente nombre, código de barras, categoría y precio estimado.
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleScanFile(f);
+                      e.target.value = "";
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={scanning}
+                    className="bg-gradient-brand hover:opacity-90 gap-2 flex-1"
+                  >
+                    {scanning ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Analizando...</>
+                    ) : (
+                      <><Camera className="h-4 w-4" /> Tomar foto del paquete</>
+                    )}
+                  </Button>
+                  {scanPreview && (
+                    <img src={scanPreview} alt="preview" className="h-11 w-11 rounded-lg object-cover border" />
+                  )}
+                </div>
+              </div>
+            )}
+
+
 
             <div className="grid gap-4 py-2 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
