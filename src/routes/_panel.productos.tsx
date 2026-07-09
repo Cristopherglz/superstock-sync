@@ -206,7 +206,7 @@ function ProductosPage() {
                   <div className="flex-1">
                     <div className="font-semibold text-sm">Escanear paquete con IA</div>
                     <div className="text-xs text-muted-foreground">
-                      Toma una foto del producto y completaremos automáticamente nombre, código de barras, categoría y precio estimado.
+                      Toma o adjunta varias fotos del producto (frente, dorso, código de barras). La IA combinará la información de todas para completar los datos.
                     </div>
                   </div>
                 </div>
@@ -216,10 +216,10 @@ function ProductosPage() {
                     type="file"
                     accept="image/*"
                     capture="environment"
+                    multiple
                     className="hidden"
                     onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) handleScanFile(f);
+                      if (e.target.files && e.target.files.length) handleScanFiles(e.target.files);
                       e.target.value = "";
                     }}
                   />
@@ -232,13 +232,31 @@ function ProductosPage() {
                     {scanning ? (
                       <><Loader2 className="h-4 w-4 animate-spin" /> Analizando...</>
                     ) : (
-                      <><Camera className="h-4 w-4" /> Tomar foto del paquete</>
+                      <><Camera className="h-4 w-4" /> {scanPhotos.length > 0 ? "Agregar otra foto" : "Tomar foto del paquete"}</>
                     )}
                   </Button>
-                  {scanPreview && (
-                    <img src={scanPreview} alt="preview" className="h-11 w-11 rounded-lg object-cover border" />
-                  )}
                 </div>
+                {scanPhotos.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {scanPhotos.map((src, i) => (
+                      <div key={i} className="relative group">
+                        <img src={src} alt={`foto ${i + 1}`} className="h-16 w-16 rounded-lg object-cover border" />
+                        <button
+                          type="button"
+                          onClick={() => removeScanPhoto(i)}
+                          disabled={scanning}
+                          className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white text-xs flex items-center justify-center shadow disabled:opacity-50"
+                          aria-label="Quitar foto"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <div className="self-center text-xs text-muted-foreground ml-1">
+                      {scanPhotos.length} foto{scanPhotos.length === 1 ? "" : "s"} analizada{scanPhotos.length === 1 ? "" : "s"}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
