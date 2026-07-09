@@ -78,7 +78,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#2563eb" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Nimbus Stock" },
       { title: "Nimbus Stock — Control de inventario para supermercados" },
       { name: "description", content: "Sistema moderno de control de stock con API para tienda online. Gestión de productos, alertas, categorías y sincronización en tiempo real." },
       { property: "og:title", content: "Nimbus Stock — Control de inventario para supermercados" },
