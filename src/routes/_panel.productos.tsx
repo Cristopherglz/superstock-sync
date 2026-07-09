@@ -57,7 +57,7 @@ function ProductosPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [scanning, setScanning] = useState(false);
-  const [scanPreview, setScanPreview] = useState<string | null>(null);
+  const [scanPhotos, setScanPhotos] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = products.filter((p) => {
@@ -73,57 +73,79 @@ function ProductosPage() {
   const openNew = () => {
     setEditing(null);
     setDraft(emptyDraft);
-    setScanPreview(null);
+    setScanPhotos([]);
     setOpen(true);
   };
 
-  const handleScanFile = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Selecciona una imagen válida");
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
+      reader.readAsDataURL(file);
+    });
+
+  const analyzePhotos = async (photos: string[]) => {
+    if (!photos.length) return;
+    setScanning(true);
+    const t = toast.loading(`Analizando ${photos.length} foto(s) con IA...`);
+    try {
+      const result = await scanProductFromImage({
+        data: {
+          imageDataUrls: photos,
+          categories: CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
+          suppliers: [...SUPPLIERS],
+        },
+      });
+      const validCat = CATEGORIES.find((c) => c.id === result.category)?.id ?? draft.category;
+      const validSup = SUPPLIERS.find((s) => s === result.supplier) ?? draft.supplier;
+      const genSku =
+        (result.name ?? "SKU").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) +
+        "-" +
+        Math.floor(Math.random() * 900 + 100);
+      setDraft((d) => ({
+        ...d,
+        name: result.name ?? d.name,
+        barcode: result.barcode || d.barcode,
+        category: validCat,
+        supplier: validSup,
+        price: typeof result.price === "number" ? result.price : d.price,
+        cost: typeof result.cost === "number" ? result.cost : d.cost,
+        minStock: typeof result.minStock === "number" ? result.minStock : d.minStock,
+        image: photos[0],
+        sku: d.sku || genSku,
+      }));
+      toast.success("Datos extraídos del conjunto de fotos", { id: t });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error al escanear";
+      toast.error(msg, { id: t });
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleScanFiles = async (files: FileList) => {
+    const valid = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!valid.length) {
+      toast.error("Selecciona imágenes válidas");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const dataUrl = reader.result as string;
-      setScanPreview(dataUrl);
-      setScanning(true);
-      const t = toast.loading("Analizando paquete con IA...");
-      try {
-        const result = await scanProductFromImage({
-          data: {
-            imageDataUrl: dataUrl,
-            categories: CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
-            suppliers: [...SUPPLIERS],
-          },
-        });
-        const validCat = CATEGORIES.find((c) => c.id === result.category)?.id ?? draft.category;
-        const validSup = SUPPLIERS.find((s) => s === result.supplier) ?? draft.supplier;
-        const genSku =
-          (result.name ?? "SKU").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) +
-          "-" +
-          Math.floor(Math.random() * 900 + 100);
-        setDraft((d) => ({
-          ...d,
-          name: result.name ?? d.name,
-          barcode: result.barcode || d.barcode,
-          category: validCat,
-          supplier: validSup,
-          price: typeof result.price === "number" ? result.price : d.price,
-          cost: typeof result.cost === "number" ? result.cost : d.cost,
-          minStock: typeof result.minStock === "number" ? result.minStock : d.minStock,
-          image: dataUrl,
-          sku: d.sku || genSku,
-        }));
-        toast.success("Datos extraídos del paquete", { id: t });
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "Error al escanear";
-        toast.error(msg, { id: t });
-      } finally {
-        setScanning(false);
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const dataUrls = await Promise.all(valid.map(readFileAsDataUrl));
+      const combined = [...scanPhotos, ...dataUrls];
+      setScanPhotos(combined);
+      await analyzePhotos(combined);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al leer imágenes");
+    }
   };
+
+  const removeScanPhoto = async (idx: number) => {
+    const next = scanPhotos.filter((_, i) => i !== idx);
+    setScanPhotos(next);
+    if (next.length) await analyzePhotos(next);
+  };
+
 
 
   const openEdit = (p: Product) => {
@@ -184,7 +206,7 @@ function ProductosPage() {
                   <div className="flex-1">
                     <div className="font-semibold text-sm">Escanear paquete con IA</div>
                     <div className="text-xs text-muted-foreground">
-                      Toma una foto del producto y completaremos automáticamente nombre, código de barras, categoría y precio estimado.
+                      Toma o adjunta varias fotos del producto (frente, dorso, código de barras). La IA combinará la información de todas para completar los datos.
                     </div>
                   </div>
                 </div>
@@ -194,10 +216,10 @@ function ProductosPage() {
                     type="file"
                     accept="image/*"
                     capture="environment"
+                    multiple
                     className="hidden"
                     onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) handleScanFile(f);
+                      if (e.target.files && e.target.files.length) handleScanFiles(e.target.files);
                       e.target.value = "";
                     }}
                   />
@@ -210,13 +232,31 @@ function ProductosPage() {
                     {scanning ? (
                       <><Loader2 className="h-4 w-4 animate-spin" /> Analizando...</>
                     ) : (
-                      <><Camera className="h-4 w-4" /> Tomar foto del paquete</>
+                      <><Camera className="h-4 w-4" /> {scanPhotos.length > 0 ? "Agregar otra foto" : "Tomar foto del paquete"}</>
                     )}
                   </Button>
-                  {scanPreview && (
-                    <img src={scanPreview} alt="preview" className="h-11 w-11 rounded-lg object-cover border" />
-                  )}
                 </div>
+                {scanPhotos.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {scanPhotos.map((src, i) => (
+                      <div key={i} className="relative group">
+                        <img src={src} alt={`foto ${i + 1}`} className="h-16 w-16 rounded-lg object-cover border" />
+                        <button
+                          type="button"
+                          onClick={() => removeScanPhoto(i)}
+                          disabled={scanning}
+                          className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white text-xs flex items-center justify-center shadow disabled:opacity-50"
+                          aria-label="Quitar foto"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <div className="self-center text-xs text-muted-foreground ml-1">
+                      {scanPhotos.length} foto{scanPhotos.length === 1 ? "" : "s"} analizada{scanPhotos.length === 1 ? "" : "s"}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

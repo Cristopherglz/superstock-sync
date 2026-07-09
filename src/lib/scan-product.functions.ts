@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-type ScanInput = { imageDataUrl: string; categories: { id: string; name: string }[]; suppliers: string[] };
+type ScanInput = { imageDataUrls: string[]; categories: { id: string; name: string }[]; suppliers: string[] };
 export type ScannedProduct = {
   name?: string;
   barcode?: string;
@@ -17,15 +17,17 @@ export const scanProductFromImage = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY no configurada");
 
+    if (!data.imageDataUrls?.length) throw new Error("Se requiere al menos una imagen");
+
     const catList = data.categories.map((c) => `${c.id} (${c.name})`).join(", ");
     const supList = data.suppliers.join(", ");
 
-    const system = `Eres un asistente experto en identificar productos de supermercado a partir de fotos del paquete. Extraes datos precisos y respondes SIEMPRE en JSON válido, sin texto adicional.`;
+    const system = `Eres un asistente experto en identificar productos de supermercado a partir de fotos del paquete. Recibes MÚLTIPLES fotos del MISMO producto (frente, dorso, lateral, código de barras, etiqueta nutricional, etc.) y debes COMBINAR la información visible en todas ellas para completar la ficha del producto de la manera más precisa posible. Respondes SIEMPRE en JSON válido, sin texto adicional.`;
 
-    const userText = `Analiza la foto del paquete de este producto de supermercado y devuelve un JSON con esta estructura EXACTA:
+    const userText = `Analiza el conjunto de ${data.imageDataUrls.length} foto(s) del MISMO producto de supermercado y combina toda la información visible (nombre, marca, presentación, código de barras, ingredientes, peso, etc.) para devolver un JSON con esta estructura EXACTA:
 {
   "name": "nombre completo del producto incluyendo marca y presentación (ej: 'Leche Entera La Serenísima 1L')",
-  "barcode": "código de barras EAN/UPC si es legible en la imagen, si no una cadena vacía",
+  "barcode": "código de barras EAN/UPC si es legible en alguna de las imágenes, si no una cadena vacía",
   "category": "uno de estos ids: ${catList}",
   "supplier": "uno de estos proveedores si coincide con la marca, si no el más probable: ${supList}",
   "price": número estimado de precio de venta en pesos argentinos (ARS) según mercado actual,
@@ -48,7 +50,7 @@ Responde SOLO con el JSON, sin markdown ni comentarios.`;
             role: "user",
             content: [
               { type: "text", text: userText },
-              { type: "image_url", image_url: { url: data.imageDataUrl } },
+              ...data.imageDataUrls.map((url) => ({ type: "image_url", image_url: { url } })),
             ],
           },
         ],
