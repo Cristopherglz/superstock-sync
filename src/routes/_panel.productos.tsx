@@ -73,56 +73,78 @@ function ProductosPage() {
   const openNew = () => {
     setEditing(null);
     setDraft(emptyDraft);
-    setScanPreview(null);
+    setScanPhotos([]);
     setOpen(true);
   };
 
-  const handleScanFile = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Selecciona una imagen válida");
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
+      reader.readAsDataURL(file);
+    });
+
+  const analyzePhotos = async (photos: string[]) => {
+    if (!photos.length) return;
+    setScanning(true);
+    const t = toast.loading(`Analizando ${photos.length} foto(s) con IA...`);
+    try {
+      const result = await scanProductFromImage({
+        data: {
+          imageDataUrls: photos,
+          categories: CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
+          suppliers: [...SUPPLIERS],
+        },
+      });
+      const validCat = CATEGORIES.find((c) => c.id === result.category)?.id ?? draft.category;
+      const validSup = SUPPLIERS.find((s) => s === result.supplier) ?? draft.supplier;
+      const genSku =
+        (result.name ?? "SKU").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) +
+        "-" +
+        Math.floor(Math.random() * 900 + 100);
+      setDraft((d) => ({
+        ...d,
+        name: result.name ?? d.name,
+        barcode: result.barcode || d.barcode,
+        category: validCat,
+        supplier: validSup,
+        price: typeof result.price === "number" ? result.price : d.price,
+        cost: typeof result.cost === "number" ? result.cost : d.cost,
+        minStock: typeof result.minStock === "number" ? result.minStock : d.minStock,
+        image: photos[0],
+        sku: d.sku || genSku,
+      }));
+      toast.success("Datos extraídos del conjunto de fotos", { id: t });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error al escanear";
+      toast.error(msg, { id: t });
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleScanFiles = async (files: FileList) => {
+    const valid = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!valid.length) {
+      toast.error("Selecciona imágenes válidas");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const dataUrl = reader.result as string;
-      setScanPreview(dataUrl);
-      setScanning(true);
-      const t = toast.loading("Analizando paquete con IA...");
-      try {
-        const result = await scanProductFromImage({
-          data: {
-            imageDataUrl: dataUrl,
-            categories: CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
-            suppliers: [...SUPPLIERS],
-          },
-        });
-        const validCat = CATEGORIES.find((c) => c.id === result.category)?.id ?? draft.category;
-        const validSup = SUPPLIERS.find((s) => s === result.supplier) ?? draft.supplier;
-        const genSku =
-          (result.name ?? "SKU").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) +
-          "-" +
-          Math.floor(Math.random() * 900 + 100);
-        setDraft((d) => ({
-          ...d,
-          name: result.name ?? d.name,
-          barcode: result.barcode || d.barcode,
-          category: validCat,
-          supplier: validSup,
-          price: typeof result.price === "number" ? result.price : d.price,
-          cost: typeof result.cost === "number" ? result.cost : d.cost,
-          minStock: typeof result.minStock === "number" ? result.minStock : d.minStock,
-          image: dataUrl,
-          sku: d.sku || genSku,
-        }));
-        toast.success("Datos extraídos del paquete", { id: t });
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "Error al escanear";
-        toast.error(msg, { id: t });
-      } finally {
-        setScanning(false);
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const dataUrls = await Promise.all(valid.map(readFileAsDataUrl));
+      const combined = [...scanPhotos, ...dataUrls];
+      setScanPhotos(combined);
+      await analyzePhotos(combined);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al leer imágenes");
+    }
+  };
+
+  const removeScanPhoto = async (idx: number) => {
+    const next = scanPhotos.filter((_, i) => i !== idx);
+    setScanPhotos(next);
+    if (next.length) await analyzePhotos(next);
+  };
   };
 
 
