@@ -145,7 +145,7 @@ function ProductosPage() {
     setScanPhotos(next);
     if (next.length) await analyzePhotos(next);
   };
-  };
+
 
 
   const openEdit = (p: Product) => {
