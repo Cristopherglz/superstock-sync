@@ -57,7 +57,7 @@ function ProductosPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [scanning, setScanning] = useState(false);
-  const [scanPreview, setScanPreview] = useState<string | null>(null);
+  const [scanPhotos, setScanPhotos] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = products.filter((p) => {
