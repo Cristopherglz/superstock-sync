@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useApp } from "@/lib/store";
 import { CATEGORIES, SUPPLIERS } from "@/lib/mock-data";
 import type { Product } from "@/lib/mock-data";
+import { scanProductFromImage } from "@/lib/scan-product.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Package, Filter } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, Filter, Camera, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_panel/productos")({
