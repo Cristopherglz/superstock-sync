@@ -66,9 +66,9 @@ Responde SOLO con el JSON, sin markdown ni comentarios.`;
     const json = await resp.json();
     const content: string = json.choices?.[0]?.message?.content ?? "";
     const cleaned = content.replace(/```json\s*|\s*```/g, "").trim();
-    let parsed: Record<string, unknown>;
+    let parsed: ScannedProduct;
     try {
-      parsed = JSON.parse(cleaned);
+      parsed = JSON.parse(cleaned) as ScannedProduct;
     } catch {
       throw new Error("La IA no devolvió un JSON válido");
     }
