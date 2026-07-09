@@ -56,6 +56,9 @@ function ProductosPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [scanning, setScanning] = useState(false);
+  const [scanPreview, setScanPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = products.filter((p) => {
     const matchesQ =
@@ -70,8 +73,58 @@ function ProductosPage() {
   const openNew = () => {
     setEditing(null);
     setDraft(emptyDraft);
+    setScanPreview(null);
     setOpen(true);
   };
+
+  const handleScanFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecciona una imagen válida");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      setScanPreview(dataUrl);
+      setScanning(true);
+      const t = toast.loading("Analizando paquete con IA...");
+      try {
+        const result = await scanProductFromImage({
+          data: {
+            imageDataUrl: dataUrl,
+            categories: CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
+            suppliers: [...SUPPLIERS],
+          },
+        });
+        const validCat = CATEGORIES.find((c) => c.id === result.category)?.id ?? draft.category;
+        const validSup = SUPPLIERS.find((s) => s === result.supplier) ?? draft.supplier;
+        const genSku =
+          (result.name ?? "SKU").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) +
+          "-" +
+          Math.floor(Math.random() * 900 + 100);
+        setDraft((d) => ({
+          ...d,
+          name: result.name ?? d.name,
+          barcode: result.barcode || d.barcode,
+          category: validCat,
+          supplier: validSup,
+          price: typeof result.price === "number" ? result.price : d.price,
+          cost: typeof result.cost === "number" ? result.cost : d.cost,
+          minStock: typeof result.minStock === "number" ? result.minStock : d.minStock,
+          image: dataUrl,
+          sku: d.sku || genSku,
+        }));
+        toast.success("Datos extraídos del paquete", { id: t });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Error al escanear";
+        toast.error(msg, { id: t });
+      } finally {
+        setScanning(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   const openEdit = (p: Product) => {
     setEditing(p);
