@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { useApp } from "@/lib/store";
 import { CATEGORIES, SUPPLIERS } from "@/lib/mock-data";
 import type { Product } from "@/lib/mock-data";
-import { scanProductFromImage } from "@/lib/scan-product.functions";
+import { scanProductFromImage, type ScannedProduct } from "@/lib/scan-product.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Package, Filter, Camera, Loader2, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, Filter, Camera, Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_panel/productos")({
@@ -38,16 +38,27 @@ type Draft = Omit<Product, "id" | "updatedAt">;
 const emptyDraft: Draft = {
   sku: "",
   name: "",
-  category: CATEGORIES[0].id,
+  category: "",
   price: 0,
   cost: 0,
   stock: 0,
-  minStock: 10,
-  supplier: SUPPLIERS[0],
+  minStock: 0,
+  supplier: "",
   barcode: "",
-  image: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=400&q=70",
+  image: "",
   publishedOnline: true,
 };
+
+const defaultDraft = (): Draft => ({
+  ...emptyDraft,
+  category: CATEGORIES[0].id,
+  supplier: SUPPLIERS[0],
+  minStock: 10,
+  image: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=400&q=70",
+});
+
+type PhotoStatus = "pending" | "analyzing" | "done" | "error";
+type PhotoEntry = { src: string; status: PhotoStatus };
 
 function ProductosPage() {
   const { products, addProduct, updateProduct, deleteProduct } = useApp();
@@ -55,9 +66,9 @@ function ProductosPage() {
   const [cat, setCat] = useState<string>("all");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [draft, setDraft] = useState<Draft>(defaultDraft());
   const [scanning, setScanning] = useState(false);
-  const [scanPhotos, setScanPhotos] = useState<string[]>([]);
+  const [scanPhotos, setScanPhotos] = useState<PhotoEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = products.filter((p) => {
@@ -72,7 +83,7 @@ function ProductosPage() {
 
   const openNew = () => {
     setEditing(null);
-    setDraft(emptyDraft);
+    setDraft(defaultDraft());
     setScanPhotos([]);
     setOpen(true);
   };
@@ -85,40 +96,59 @@ function ProductosPage() {
       reader.readAsDataURL(file);
     });
 
-  const analyzePhotos = async (photos: string[]) => {
-    if (!photos.length) return;
+  // Merge only into empty fields, never overwrite user-entered data.
+  const mergeIntoDraft = (result: ScannedProduct, firstPhotoSrc: string | null) => {
+    setDraft((d) => {
+      const next: Draft = { ...d };
+      const emptyStr = (s: string) => !s || !s.trim();
+      const isDefaultImage = next.image === defaultDraft().image;
+
+      if (emptyStr(next.name) && result.name) next.name = result.name;
+      if (emptyStr(next.barcode) && result.barcode) next.barcode = result.barcode;
+      if (result.category && CATEGORIES.some((c) => c.id === result.category) && emptyStr(d.category)) {
+        next.category = result.category;
+      }
+      if (result.supplier && SUPPLIERS.includes(result.supplier) && emptyStr(d.supplier)) {
+        next.supplier = result.supplier;
+      }
+      if (next.price === 0 && typeof result.price === "number") next.price = result.price;
+      if (next.cost === 0 && typeof result.cost === "number") next.cost = result.cost;
+      if (next.minStock === 0 && typeof result.minStock === "number") next.minStock = result.minStock;
+      if (emptyStr(next.sku) && result.name) {
+        next.sku =
+          result.name.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) +
+          "-" +
+          Math.floor(Math.random() * 900 + 100);
+      }
+      if (isDefaultImage && firstPhotoSrc) next.image = firstPhotoSrc;
+      return next;
+    });
+  };
+
+  const analyzeNewPhotos = async (allPhotos: PhotoEntry[], newIndexes: number[]) => {
+    const newSources = newIndexes.map((i) => allPhotos[i].src);
+    if (!newSources.length) return;
     setScanning(true);
-    const t = toast.loading(`Analizando ${photos.length} foto(s) con IA...`);
     try {
       const result = await scanProductFromImage({
         data: {
-          imageDataUrls: photos,
+          imageDataUrls: newSources,
           categories: CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
           suppliers: [...SUPPLIERS],
         },
       });
-      const validCat = CATEGORIES.find((c) => c.id === result.category)?.id ?? draft.category;
-      const validSup = SUPPLIERS.find((s) => s === result.supplier) ?? draft.supplier;
-      const genSku =
-        (result.name ?? "SKU").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) +
-        "-" +
-        Math.floor(Math.random() * 900 + 100);
-      setDraft((d) => ({
-        ...d,
-        name: result.name ?? d.name,
-        barcode: result.barcode || d.barcode,
-        category: validCat,
-        supplier: validSup,
-        price: typeof result.price === "number" ? result.price : d.price,
-        cost: typeof result.cost === "number" ? result.cost : d.cost,
-        minStock: typeof result.minStock === "number" ? result.minStock : d.minStock,
-        image: photos[0],
-        sku: d.sku || genSku,
-      }));
-      toast.success("Datos extraídos del conjunto de fotos", { id: t });
+      const firstOverall = allPhotos[0]?.src ?? null;
+      mergeIntoDraft(result, firstOverall);
+      setScanPhotos((prev) =>
+        prev.map((p, i) => (newIndexes.includes(i) ? { ...p, status: "done" } : p)),
+      );
+      toast.success("Datos nuevos incorporados sin sobrescribir lo cargado");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error al escanear";
-      toast.error(msg, { id: t });
+      setScanPhotos((prev) =>
+        prev.map((p, i) => (newIndexes.includes(i) ? { ...p, status: "error" } : p)),
+      );
+      toast.error(msg);
     } finally {
       setScanning(false);
     }
@@ -132,26 +162,26 @@ function ProductosPage() {
     }
     try {
       const dataUrls = await Promise.all(valid.map(readFileAsDataUrl));
-      const combined = [...scanPhotos, ...dataUrls];
+      const added: PhotoEntry[] = dataUrls.map((src) => ({ src, status: "analyzing" }));
+      const startIndex = scanPhotos.length;
+      const combined = [...scanPhotos, ...added];
       setScanPhotos(combined);
-      await analyzePhotos(combined);
+      const newIndexes = added.map((_, i) => startIndex + i);
+      await analyzeNewPhotos(combined, newIndexes);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error al leer imágenes");
     }
   };
 
-  const removeScanPhoto = async (idx: number) => {
-    const next = scanPhotos.filter((_, i) => i !== idx);
-    setScanPhotos(next);
-    if (next.length) await analyzePhotos(next);
+  const removeScanPhoto = (idx: number) => {
+    setScanPhotos((prev) => prev.filter((_, i) => i !== idx));
   };
-
-
 
   const openEdit = (p: Product) => {
     setEditing(p);
     const { id: _id, updatedAt: _u, ...rest } = p;
     setDraft(rest);
+    setScanPhotos([]);
     setOpen(true);
   };
 
@@ -206,7 +236,7 @@ function ProductosPage() {
                   <div className="flex-1">
                     <div className="font-semibold text-sm">Escanear paquete con IA</div>
                     <div className="text-xs text-muted-foreground">
-                      Toma o adjunta varias fotos del producto (frente, dorso, código de barras). La IA combinará la información de todas para completar los datos.
+                      Sumá fotos del producto (frente, dorso, código de barras). Cada nueva foto <b>solo completa los campos vacíos</b>, nunca reemplaza lo que ya cargaste.
                     </div>
                   </div>
                 </div>
@@ -238,14 +268,39 @@ function ProductosPage() {
                 </div>
                 {scanPhotos.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
-                    {scanPhotos.map((src, i) => (
+                    {scanPhotos.map((ph, i) => (
                       <div key={i} className="relative group">
-                        <img src={src} alt={`foto ${i + 1}`} className="h-16 w-16 rounded-lg object-cover border" />
+                        <div className="relative h-16 w-16 rounded-lg overflow-hidden border">
+                          <img
+                            src={ph.src}
+                            alt={`foto ${i + 1}`}
+                            className={`h-full w-full object-cover transition ${ph.status === "analyzing" ? "blur-[1px] brightness-75" : ""}`}
+                          />
+                          {ph.status === "analyzing" && (
+                            <>
+                              <div className="absolute inset-0 flex items-center justify-center bg-primary/25">
+                                <Loader2 className="h-5 w-5 text-white animate-spin drop-shadow" />
+                              </div>
+                              <div className="pointer-events-none absolute inset-x-0 top-0 h-full">
+                                <div className="absolute inset-x-0 h-8 bg-gradient-to-b from-primary/40 via-primary/10 to-transparent animate-[scan_1.4s_ease-in-out_infinite]" />
+                              </div>
+                            </>
+                          )}
+                          {ph.status === "done" && (
+                            <div className="absolute bottom-0.5 right-0.5 bg-success text-white rounded-full p-0.5 shadow">
+                              <CheckCircle2 className="h-3 w-3" />
+                            </div>
+                          )}
+                          {ph.status === "error" && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-destructive/70 text-white text-[10px] font-bold">
+                              Error
+                            </div>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeScanPhoto(i)}
-                          disabled={scanning}
-                          className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white text-xs flex items-center justify-center shadow disabled:opacity-50"
+                          className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white text-xs flex items-center justify-center shadow"
                           aria-label="Quitar foto"
                         >
                           ×
@@ -253,14 +308,12 @@ function ProductosPage() {
                       </div>
                     ))}
                     <div className="self-center text-xs text-muted-foreground ml-1">
-                      {scanPhotos.length} foto{scanPhotos.length === 1 ? "" : "s"} analizada{scanPhotos.length === 1 ? "" : "s"}
+                      {scanPhotos.filter((p) => p.status === "done").length}/{scanPhotos.length} analizadas
                     </div>
                   </div>
                 )}
               </div>
             )}
-
-
 
             <div className="grid gap-4 py-2 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
