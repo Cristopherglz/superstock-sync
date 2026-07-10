@@ -4,6 +4,28 @@ import { INITIAL_PRODUCTS, type Product } from "./mock-data";
 export type Role = "admin" | "empleado";
 export type User = { email: string; name: string; role: Role };
 
+export type CustomerInfo = {
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  zip: string;
+  notes: string;
+  wantsInvoice: boolean;
+  cuit: string;
+};
+
+const emptyCustomer: CustomerInfo = {
+  fullName: "",
+  phone: "",
+  address: "",
+  city: "",
+  zip: "",
+  notes: "",
+  wantsInvoice: false,
+  cuit: "",
+};
+
 const DEMO_USERS: Record<string, { password: string; user: User }> = {
   "admin@market.com": {
     password: "admin123",
@@ -23,16 +45,27 @@ type Ctx = {
   addProduct: (p: Omit<Product, "id" | "updatedAt">) => void;
   updateProduct: (id: string, patch: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
+  cart: Record<string, number>;
+  addToCart: (id: string, qty?: number) => void;
+  removeFromCart: (id: string) => void;
+  setCartQty: (id: string, qty: number) => void;
+  clearCart: () => void;
+  customer: CustomerInfo;
+  setCustomer: (c: CustomerInfo) => void;
 };
 
 const AppCtx = createContext<Ctx | null>(null);
 
 const LS_USER = "sm_user";
 const LS_PRODUCTS = "sm_products";
+const LS_CART = "sm_cart";
+const LS_CUSTOMER = "sm_customer";
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [cart, setCart] = useState<Record<string, number>>({});
+  const [customer, setCustomerState] = useState<CustomerInfo>(emptyCustomer);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -41,6 +74,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (u) setUser(JSON.parse(u));
       const p = localStorage.getItem(LS_PRODUCTS);
       if (p) setProducts(JSON.parse(p));
+      const c = localStorage.getItem(LS_CART);
+      if (c) setCart(JSON.parse(c));
+      const cu = localStorage.getItem(LS_CUSTOMER);
+      if (cu) setCustomerState({ ...emptyCustomer, ...JSON.parse(cu) });
     } catch {}
     setHydrated(true);
   }, []);
@@ -48,6 +85,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (hydrated) localStorage.setItem(LS_PRODUCTS, JSON.stringify(products));
   }, [products, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) localStorage.setItem(LS_CART, JSON.stringify(cart));
+  }, [cart, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) localStorage.setItem(LS_CUSTOMER, JSON.stringify(customer));
+  }, [customer, hydrated]);
 
   const login: Ctx["login"] = (email, password) => {
     const rec = DEMO_USERS[email.trim().toLowerCase()];
@@ -80,8 +125,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
+  const addToCart: Ctx["addToCart"] = (id, qty = 1) =>
+    setCart((c) => ({ ...c, [id]: (c[id] || 0) + qty }));
+
+  const removeFromCart: Ctx["removeFromCart"] = (id) =>
+    setCart((c) => {
+      const n = { ...c };
+      delete n[id];
+      return n;
+    });
+
+  const setCartQty: Ctx["setCartQty"] = (id, qty) =>
+    setCart((c) => {
+      const n = { ...c };
+      if (qty <= 0) delete n[id];
+      else n[id] = qty;
+      return n;
+    });
+
+  const clearCart = () => setCart({});
+  const setCustomer = (c: CustomerInfo) => setCustomerState(c);
+
   return (
-    <AppCtx.Provider value={{ user, login, logout, products, addProduct, updateProduct, deleteProduct }}>
+    <AppCtx.Provider
+      value={{
+        user,
+        login,
+        logout,
+        products,
+        addProduct,
+        updateProduct,
+        deleteProduct,
+        cart,
+        addToCart,
+        removeFromCart,
+        setCartQty,
+        clearCart,
+        customer,
+        setCustomer,
+      }}
+    >
       {children}
     </AppCtx.Provider>
   );

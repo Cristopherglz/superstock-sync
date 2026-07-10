@@ -9,16 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TiendaOnlineRouteImport } from './routes/tienda-online'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PanelRouteImport } from './routes/_panel'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TiendaOnlineIndexRouteImport } from './routes/tienda-online.index'
+import { Route as TiendaOnlineCajaRouteImport } from './routes/tienda-online.caja'
 import { Route as PanelTiendaRouteImport } from './routes/_panel.tienda'
 import { Route as PanelProductosRouteImport } from './routes/_panel.productos'
 import { Route as PanelInventarioRouteImport } from './routes/_panel.inventario'
 import { Route as PanelDashboardRouteImport } from './routes/_panel.dashboard'
 import { Route as PanelCategoriasRouteImport } from './routes/_panel.categorias'
 import { Route as PanelApiDocsRouteImport } from './routes/_panel.api-docs'
+import { Route as TiendaOnlineProductoIdRouteImport } from './routes/tienda-online.producto.$id'
 
+const TiendaOnlineRoute = TiendaOnlineRouteImport.update({
+  id: '/tienda-online',
+  path: '/tienda-online',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -32,6 +41,16 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TiendaOnlineIndexRoute = TiendaOnlineIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TiendaOnlineRoute,
+} as any)
+const TiendaOnlineCajaRoute = TiendaOnlineCajaRouteImport.update({
+  id: '/caja',
+  path: '/caja',
+  getParentRoute: () => TiendaOnlineRoute,
 } as any)
 const PanelTiendaRoute = PanelTiendaRouteImport.update({
   id: '/tienda',
@@ -63,16 +82,25 @@ const PanelApiDocsRoute = PanelApiDocsRouteImport.update({
   path: '/api-docs',
   getParentRoute: () => PanelRoute,
 } as any)
+const TiendaOnlineProductoIdRoute = TiendaOnlineProductoIdRouteImport.update({
+  id: '/producto/$id',
+  path: '/producto/$id',
+  getParentRoute: () => TiendaOnlineRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/tienda-online': typeof TiendaOnlineRouteWithChildren
   '/api-docs': typeof PanelApiDocsRoute
   '/categorias': typeof PanelCategoriasRoute
   '/dashboard': typeof PanelDashboardRoute
   '/inventario': typeof PanelInventarioRoute
   '/productos': typeof PanelProductosRoute
   '/tienda': typeof PanelTiendaRoute
+  '/tienda-online/caja': typeof TiendaOnlineCajaRoute
+  '/tienda-online/': typeof TiendaOnlineIndexRoute
+  '/tienda-online/producto/$id': typeof TiendaOnlineProductoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,30 +111,41 @@ export interface FileRoutesByTo {
   '/inventario': typeof PanelInventarioRoute
   '/productos': typeof PanelProductosRoute
   '/tienda': typeof PanelTiendaRoute
+  '/tienda-online/caja': typeof TiendaOnlineCajaRoute
+  '/tienda-online': typeof TiendaOnlineIndexRoute
+  '/tienda-online/producto/$id': typeof TiendaOnlineProductoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_panel': typeof PanelRouteWithChildren
   '/auth': typeof AuthRoute
+  '/tienda-online': typeof TiendaOnlineRouteWithChildren
   '/_panel/api-docs': typeof PanelApiDocsRoute
   '/_panel/categorias': typeof PanelCategoriasRoute
   '/_panel/dashboard': typeof PanelDashboardRoute
   '/_panel/inventario': typeof PanelInventarioRoute
   '/_panel/productos': typeof PanelProductosRoute
   '/_panel/tienda': typeof PanelTiendaRoute
+  '/tienda-online/caja': typeof TiendaOnlineCajaRoute
+  '/tienda-online/': typeof TiendaOnlineIndexRoute
+  '/tienda-online/producto/$id': typeof TiendaOnlineProductoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/tienda-online'
     | '/api-docs'
     | '/categorias'
     | '/dashboard'
     | '/inventario'
     | '/productos'
     | '/tienda'
+    | '/tienda-online/caja'
+    | '/tienda-online/'
+    | '/tienda-online/producto/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,27 +156,42 @@ export interface FileRouteTypes {
     | '/inventario'
     | '/productos'
     | '/tienda'
+    | '/tienda-online/caja'
+    | '/tienda-online'
+    | '/tienda-online/producto/$id'
   id:
     | '__root__'
     | '/'
     | '/_panel'
     | '/auth'
+    | '/tienda-online'
     | '/_panel/api-docs'
     | '/_panel/categorias'
     | '/_panel/dashboard'
     | '/_panel/inventario'
     | '/_panel/productos'
     | '/_panel/tienda'
+    | '/tienda-online/caja'
+    | '/tienda-online/'
+    | '/tienda-online/producto/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PanelRoute: typeof PanelRouteWithChildren
   AuthRoute: typeof AuthRoute
+  TiendaOnlineRoute: typeof TiendaOnlineRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tienda-online': {
+      id: '/tienda-online'
+      path: '/tienda-online'
+      fullPath: '/tienda-online'
+      preLoaderRoute: typeof TiendaOnlineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -158,6 +212,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/tienda-online/': {
+      id: '/tienda-online/'
+      path: '/'
+      fullPath: '/tienda-online/'
+      preLoaderRoute: typeof TiendaOnlineIndexRouteImport
+      parentRoute: typeof TiendaOnlineRoute
+    }
+    '/tienda-online/caja': {
+      id: '/tienda-online/caja'
+      path: '/caja'
+      fullPath: '/tienda-online/caja'
+      preLoaderRoute: typeof TiendaOnlineCajaRouteImport
+      parentRoute: typeof TiendaOnlineRoute
     }
     '/_panel/tienda': {
       id: '/_panel/tienda'
@@ -201,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PanelApiDocsRouteImport
       parentRoute: typeof PanelRoute
     }
+    '/tienda-online/producto/$id': {
+      id: '/tienda-online/producto/$id'
+      path: '/producto/$id'
+      fullPath: '/tienda-online/producto/$id'
+      preLoaderRoute: typeof TiendaOnlineProductoIdRouteImport
+      parentRoute: typeof TiendaOnlineRoute
+    }
   }
 }
 
@@ -224,10 +299,27 @@ const PanelRouteChildren: PanelRouteChildren = {
 
 const PanelRouteWithChildren = PanelRoute._addFileChildren(PanelRouteChildren)
 
+interface TiendaOnlineRouteChildren {
+  TiendaOnlineCajaRoute: typeof TiendaOnlineCajaRoute
+  TiendaOnlineIndexRoute: typeof TiendaOnlineIndexRoute
+  TiendaOnlineProductoIdRoute: typeof TiendaOnlineProductoIdRoute
+}
+
+const TiendaOnlineRouteChildren: TiendaOnlineRouteChildren = {
+  TiendaOnlineCajaRoute: TiendaOnlineCajaRoute,
+  TiendaOnlineIndexRoute: TiendaOnlineIndexRoute,
+  TiendaOnlineProductoIdRoute: TiendaOnlineProductoIdRoute,
+}
+
+const TiendaOnlineRouteWithChildren = TiendaOnlineRoute._addFileChildren(
+  TiendaOnlineRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PanelRoute: PanelRouteWithChildren,
   AuthRoute: AuthRoute,
+  TiendaOnlineRoute: TiendaOnlineRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
