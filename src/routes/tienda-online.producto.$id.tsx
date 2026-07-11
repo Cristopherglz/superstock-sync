@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useApp } from "@/lib/store";
+import { useApp, effectivePrice } from "@/lib/store";
 import { useTiendaUI } from "@/lib/tienda-ui";
 import { CATEGORIES } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,11 @@ function ProductPage() {
         <Card className="overflow-hidden shadow-elegant">
           <div className="aspect-square bg-secondary relative">
             <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+            {product.discountPct > 0 && (
+              <div className="absolute top-3 left-3 rounded-full bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1.5 shadow-elegant">
+                OFERTA -{product.discountPct}%
+              </div>
+            )}
             {low && (
               <Badge className="absolute top-3 right-3 bg-warning text-warning-foreground border-0">
                 Últimas {product.stock} unidades
@@ -83,18 +88,21 @@ function ProductPage() {
             <span className="uppercase tracking-wider text-muted-foreground">{cat?.name}</span>
           </div>
           <h1 className="font-display text-3xl lg:text-4xl font-bold mt-2 leading-tight">{product.name}</h1>
-          <div className="text-sm text-muted-foreground mt-1">Distribuido por {product.supplier}</div>
 
-          <div className="mt-6 flex items-baseline gap-3">
-            <div className="font-display text-4xl font-bold text-gradient-brand">
-              ${product.price.toLocaleString("es-AR")}
+          <div className="mt-6 flex items-baseline gap-3 flex-wrap">
+            <div className={`font-display text-4xl font-bold ${product.discountPct > 0 ? "text-destructive" : "text-gradient-brand"}`}>
+              ${effectivePrice(product).toLocaleString("es-AR")}
             </div>
-            {margin > 0 && (
-              <div className="text-xs text-muted-foreground">
-                Precio final con IVA incluido
+            {product.discountPct > 0 && (
+              <div className="text-lg text-muted-foreground line-through">
+                ${product.price.toLocaleString("es-AR")}
               </div>
             )}
+            <div className="text-xs text-muted-foreground w-full">
+              Precio final con IVA incluido
+            </div>
           </div>
+
 
           <div className="mt-6 flex flex-wrap gap-2 text-xs">
             <div className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1">
