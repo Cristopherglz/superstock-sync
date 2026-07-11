@@ -364,4 +364,3 @@ function PanelLayout() {
 }
 
 // silence unused
-void X;
