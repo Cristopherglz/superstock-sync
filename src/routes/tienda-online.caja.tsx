@@ -464,5 +464,3 @@ function SuccessScreen({ order, onNew }: { order: Order; onNew: () => void }) {
 }
 
 // silence unused
-void updateOrderTypeHelper;
-function updateOrderTypeHelper() {}
