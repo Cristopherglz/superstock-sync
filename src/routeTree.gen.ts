@@ -17,6 +17,7 @@ import { Route as TiendaOnlineIndexRouteImport } from './routes/tienda-online.in
 import { Route as TiendaOnlineCajaRouteImport } from './routes/tienda-online.caja'
 import { Route as PanelTiendaRouteImport } from './routes/_panel.tienda'
 import { Route as PanelProductosRouteImport } from './routes/_panel.productos'
+import { Route as PanelPedidosRouteImport } from './routes/_panel.pedidos'
 import { Route as PanelInventarioRouteImport } from './routes/_panel.inventario'
 import { Route as PanelDashboardRouteImport } from './routes/_panel.dashboard'
 import { Route as PanelCategoriasRouteImport } from './routes/_panel.categorias'
@@ -62,6 +63,11 @@ const PanelProductosRoute = PanelProductosRouteImport.update({
   path: '/productos',
   getParentRoute: () => PanelRoute,
 } as any)
+const PanelPedidosRoute = PanelPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => PanelRoute,
+} as any)
 const PanelInventarioRoute = PanelInventarioRouteImport.update({
   id: '/inventario',
   path: '/inventario',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/categorias': typeof PanelCategoriasRoute
   '/dashboard': typeof PanelDashboardRoute
   '/inventario': typeof PanelInventarioRoute
+  '/pedidos': typeof PanelPedidosRoute
   '/productos': typeof PanelProductosRoute
   '/tienda': typeof PanelTiendaRoute
   '/tienda-online/caja': typeof TiendaOnlineCajaRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/categorias': typeof PanelCategoriasRoute
   '/dashboard': typeof PanelDashboardRoute
   '/inventario': typeof PanelInventarioRoute
+  '/pedidos': typeof PanelPedidosRoute
   '/productos': typeof PanelProductosRoute
   '/tienda': typeof PanelTiendaRoute
   '/tienda-online/caja': typeof TiendaOnlineCajaRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/_panel/categorias': typeof PanelCategoriasRoute
   '/_panel/dashboard': typeof PanelDashboardRoute
   '/_panel/inventario': typeof PanelInventarioRoute
+  '/_panel/pedidos': typeof PanelPedidosRoute
   '/_panel/productos': typeof PanelProductosRoute
   '/_panel/tienda': typeof PanelTiendaRoute
   '/tienda-online/caja': typeof TiendaOnlineCajaRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/categorias'
     | '/dashboard'
     | '/inventario'
+    | '/pedidos'
     | '/productos'
     | '/tienda'
     | '/tienda-online/caja'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/categorias'
     | '/dashboard'
     | '/inventario'
+    | '/pedidos'
     | '/productos'
     | '/tienda'
     | '/tienda-online/caja'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/_panel/categorias'
     | '/_panel/dashboard'
     | '/_panel/inventario'
+    | '/_panel/pedidos'
     | '/_panel/productos'
     | '/_panel/tienda'
     | '/tienda-online/caja'
@@ -241,6 +253,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PanelProductosRouteImport
       parentRoute: typeof PanelRoute
     }
+    '/_panel/pedidos': {
+      id: '/_panel/pedidos'
+      path: '/pedidos'
+      fullPath: '/pedidos'
+      preLoaderRoute: typeof PanelPedidosRouteImport
+      parentRoute: typeof PanelRoute
+    }
     '/_panel/inventario': {
       id: '/_panel/inventario'
       path: '/inventario'
@@ -284,6 +303,7 @@ interface PanelRouteChildren {
   PanelCategoriasRoute: typeof PanelCategoriasRoute
   PanelDashboardRoute: typeof PanelDashboardRoute
   PanelInventarioRoute: typeof PanelInventarioRoute
+  PanelPedidosRoute: typeof PanelPedidosRoute
   PanelProductosRoute: typeof PanelProductosRoute
   PanelTiendaRoute: typeof PanelTiendaRoute
 }
@@ -293,6 +313,7 @@ const PanelRouteChildren: PanelRouteChildren = {
   PanelCategoriasRoute: PanelCategoriasRoute,
   PanelDashboardRoute: PanelDashboardRoute,
   PanelInventarioRoute: PanelInventarioRoute,
+  PanelPedidosRoute: PanelPedidosRoute,
   PanelProductosRoute: PanelProductosRoute,
   PanelTiendaRoute: PanelTiendaRoute,
 }

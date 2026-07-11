@@ -166,19 +166,21 @@ function FloatingCart() {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       style={{ left: pos.x, top: pos.y, touchAction: "none" }}
-      className={`fixed z-40 select-none cursor-grab active:cursor-grabbing rounded-2xl bg-gradient-brand text-white shadow-elevated px-4 py-3 flex items-center gap-3 border border-white/10 transition-transform ${
+      className={`fixed z-40 select-none cursor-grab active:cursor-grabbing rounded-2xl text-white shadow-elevated flex items-center gap-3 transition-transform animated-border ${
         pulse ? "scale-110" : "scale-100"
       }`}
     >
-      <div className="relative">
-        <ShoppingCart className="h-5 w-5" />
-        <span className="absolute -top-2 -right-2 h-5 min-w-5 px-1 rounded-full bg-white text-primary text-[10px] font-bold flex items-center justify-center shadow">
-          {items}
-        </span>
-      </div>
-      <div className="leading-tight">
-        <div className="text-[10px] uppercase tracking-wider opacity-80">Ir a caja</div>
-        <div className="font-display font-bold">${total.toLocaleString("es-AR")}</div>
+      <div className="rounded-[14px] bg-gradient-brand px-4 py-3 flex items-center gap-3">
+        <div className="relative">
+          <ShoppingCart className="h-5 w-5" />
+          <span className="absolute -top-2 -right-2 h-5 min-w-5 px-1 rounded-full bg-white text-primary text-[10px] font-bold flex items-center justify-center shadow">
+            {items}
+          </span>
+        </div>
+        <div className="leading-tight">
+          <div className="text-[10px] uppercase tracking-wider opacity-80">Ir a caja</div>
+          <div className="font-display font-bold">${total.toLocaleString("es-AR")}</div>
+        </div>
       </div>
     </div>
   );
