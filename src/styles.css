@@ -158,3 +158,18 @@
   100% { transform: translateY(100%); }
 }
 
+@keyframes cart-border {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@utility animated-border {
+  position: relative;
+  background:
+    linear-gradient(var(--gradient-brand)) padding-box,
+    linear-gradient(90deg, oklch(0.9 0.15 200), oklch(1 0 0), oklch(0.9 0.15 200), oklch(1 0 0)) border-box;
+  background-size: auto, 200% 100%;
+  border: 2px solid transparent;
+  animation: cart-border 2.5s linear infinite;
+}
+
+

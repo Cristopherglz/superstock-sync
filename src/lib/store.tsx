@@ -102,8 +102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const p = localStorage.getItem(LS_PRODUCTS);
       if (p) {
         const parsed = JSON.parse(p) as Product[];
-        // Ensure discountPct exists on legacy entries
-        setProducts(parsed.map((x) => ({ discountPct: 0, ...x })));
+        setProducts(parsed.map((x) => ({ ...x, discountPct: x.discountPct ?? 0 })));
       }
       const c = localStorage.getItem(LS_CART);
       if (c) setCart(JSON.parse(c));
@@ -144,7 +143,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addProduct: Ctx["addProduct"] = (p) => {
     const id = "p" + Math.random().toString(36).slice(2, 9);
     setProducts((prev) => [
-      { discountPct: 0, ...p, id, updatedAt: new Date().toISOString().slice(0, 10) },
+      { ...p, id, updatedAt: new Date().toISOString().slice(0, 10) },
       ...prev,
     ]);
   };
