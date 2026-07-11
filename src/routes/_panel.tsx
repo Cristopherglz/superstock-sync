@@ -363,4 +363,3 @@ function PanelLayout() {
   );
 }
 
-// silence unused
