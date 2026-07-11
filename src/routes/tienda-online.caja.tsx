@@ -66,7 +66,7 @@ function buildDeliveryOptions() {
 }
 
 function CajaPage() {
-  const { products, cart, setCartQty, removeFromCart, clearCart, customer, setCustomer, addOrder, updateOrder } = useApp();
+  const { products, cart, setCartQty, removeFromCart, clearCart, customer, setCustomer, addOrder } = useApp();
   const navigate = useNavigate();
   const [placed, setPlaced] = useState<Order | null>(null);
   const [form, setForm] = useState<CustomerInfo>(customer);
