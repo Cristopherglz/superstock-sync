@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-rout
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/lib/store";
 import { TiendaUIProvider, useTiendaUI } from "@/lib/tienda-ui";
-import { Boxes, ShoppingCart, ShieldCheck } from "lucide-react";
+import { Boxes, ShoppingCart, ShieldCheck, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/tienda-online")({
   ssr: false,
