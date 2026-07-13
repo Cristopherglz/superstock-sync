@@ -19,6 +19,7 @@ function CategoriasPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {CATEGORIES.map((c) => {
+          const Icon = c.icon;
           const items = products.filter((p) => p.category === c.id);
           const stock = items.reduce((s, p) => s + p.stock, 0);
           const value = items.reduce((s, p) => s + p.stock * p.cost, 0);
@@ -26,8 +27,8 @@ function CategoriasPage() {
             <Card key={c.id} className="p-6 shadow-elegant overflow-hidden relative">
               <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-20 blur-2xl" style={{ background: c.color }} />
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl flex items-center justify-center text-white font-display font-bold text-lg" style={{ background: c.color }}>
-                  {c.name.charAt(0)}
+                <div className="h-12 w-12 rounded-xl flex items-center justify-center text-white shrink-0" style={{ background: c.color }}>
+                  <Icon className="h-6 w-6" />
                 </div>
                 <div>
                   <div className="font-display font-semibold text-lg">{c.name}</div>

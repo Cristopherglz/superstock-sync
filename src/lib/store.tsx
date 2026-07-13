@@ -31,6 +31,7 @@ export type Order = {
   deliveryStatus: DeliveryStatus;
   deliverySlotDate: string; // YYYY-MM-DD
   deliverySlotTime: string; // HH:mm
+  deliveryCode: string; // clave que el cliente entrega al repartidor
   read: boolean;
 };
 
@@ -72,7 +73,7 @@ type Ctx = {
   customer: CustomerInfo;
   setCustomer: (c: CustomerInfo) => void;
   orders: Order[];
-  addOrder: (o: Omit<Order, "id" | "createdAt" | "read">) => Order;
+  addOrder: (o: Omit<Order, "id" | "createdAt" | "read" | "deliveryCode">) => Order;
   updateOrder: (id: string, patch: Partial<Order>) => void;
   markOrdersRead: () => void;
   lowStockProducts: Product[];
@@ -166,7 +167,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addOrder: Ctx["addOrder"] = (o) => {
     const id = "N" + Math.floor(100000 + Math.random() * 900000);
-    const order: Order = { ...o, id, createdAt: new Date().toISOString(), read: false };
+    // Palabra clave fácil de recordar + 3 dígitos (ej: NIMBUS-427)
+    const words = ["NIMBUS", "FRESCO", "PALTA", "MATE", "TANGO", "SOL", "LUNA", "PAMPA", "RIO", "CIELO"];
+    const deliveryCode = `${words[Math.floor(Math.random() * words.length)]}-${Math.floor(100 + Math.random() * 900)}`;
+    const order: Order = { ...o, id, createdAt: new Date().toISOString(), deliveryCode, read: false };
     setOrders((prev) => [order, ...prev]);
     return order;
   };
