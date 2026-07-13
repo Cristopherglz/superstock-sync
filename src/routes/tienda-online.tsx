@@ -63,7 +63,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-8 text-sm text-muted-foreground flex flex-col sm:flex-row items-center gap-3 justify-between">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-success" />
-          Compra sin cuenta · pago contra entrega · envío a domicilio
+          Compra sin cuenta · envío a domicilio
         </div>
         <Link to="/auth" className="hover:text-foreground transition">
           Panel de control interno →

@@ -70,7 +70,7 @@ function StoreHome() {
             Recorré tu supermercado desde casa.
           </h1>
           <p className="mt-3 text-white/85 max-w-xl text-sm sm:text-base">
-            {visible.length} productos frescos, listos para llegar a tu puerta. Elegí tus pasillos y llená el carrito.
+            {visible.length} productos frescos, listos para llegar a tu puerta. Navegá por nuestros pasillos y llená el carrito.
           </p>
           <div className="mt-6 max-w-md relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/60" />

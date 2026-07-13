@@ -41,7 +41,7 @@ export const CATEGORIES: Category[] = [
   { id: "lacteos", name: "Lácteos", color: "oklch(0.75 0.12 220)", icon: Milk },
   { id: "bebidas", name: "Bebidas", color: "oklch(0.65 0.18 250)", icon: CupSoda },
   { id: "panaderia", name: "Panadería", color: "oklch(0.78 0.15 75)", icon: Croissant },
-  { id: "frutas", name: "Frutas y Verduras", color: "oklch(0.70 0.18 145)", icon: Apple },
+  { id: "frutas", name: "Verdulería", color: "oklch(0.70 0.18 145)", icon: Apple },
   { id: "carnes", name: "Carnes", color: "oklch(0.60 0.20 25)", icon: Beef },
   { id: "pescaderia", name: "Pescadería", color: "oklch(0.68 0.14 210)", icon: Fish },
   { id: "fiambres", name: "Fiambres", color: "oklch(0.65 0.18 15)", icon: Sandwich },
