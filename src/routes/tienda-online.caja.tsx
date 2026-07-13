@@ -47,22 +47,22 @@ export const Route = createFileRoute("/tienda-online/caja")({
 const WHATSAPP_NUMBER = "+54 9 11 5678-9010";
 const WHATSAPP_LINK = "https://wa.me/5491156789010";
 
-// Delivery slots: Mon-Sat, 9-20hs
-function buildDeliveryOptions() {
+// Delivery slots: Mon-Sat (skip Sunday). Cliente elige la hora libremente entre 9 y 20 hs.
+const OPEN_TIME = "09:00";
+const CLOSE_TIME = "20:00";
+
+function buildDeliveryDays() {
   const days: { value: string; label: string }[] = [];
   const now = new Date();
-  for (let i = 1; i <= 10 && days.length < 6; i++) {
+  for (let i = 1; i <= 14 && days.length < 10; i++) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
-    const dow = d.getDay(); // 0=sun..6=sat
-    if (dow === 0) continue; // skip Sunday
+    if (d.getDay() === 0) continue; // skip Sunday
     const iso = d.toISOString().slice(0, 10);
     const label = d.toLocaleDateString("es-AR", { weekday: "long", day: "2-digit", month: "short" });
     days.push({ value: iso, label: label.charAt(0).toUpperCase() + label.slice(1) });
   }
-  const times: string[] = [];
-  for (let h = 9; h <= 20; h++) times.push(`${String(h).padStart(2, "0")}:00`);
-  return { days, times };
+  return days;
 }
 
 function CajaPage() {
@@ -70,7 +70,7 @@ function CajaPage() {
   const navigate = useNavigate();
   const [placed, setPlaced] = useState<Order | null>(null);
   const [form, setForm] = useState<CustomerInfo>(customer);
-  const { days, times } = buildDeliveryOptions();
+  const days = buildDeliveryDays();
   const [slotDate, setSlotDate] = useState(days[0]?.value ?? "");
   const [slotTime, setSlotTime] = useState("10:00");
   const [mpOpen, setMpOpen] = useState(false);
@@ -98,6 +98,7 @@ function CajaPage() {
     }
     if (form.wantsInvoice && !form.cuit) { toast.error("Ingresá tu CUIT para la factura"); return false; }
     if (!slotDate || !slotTime) { toast.error("Elegí día y horario de entrega"); return false; }
+    if (slotTime < OPEN_TIME || slotTime > CLOSE_TIME) { toast.error(`El horario debe estar entre ${OPEN_TIME} y ${CLOSE_TIME} hs`); return false; }
     if (lines.length === 0) return false;
     return true;
   };
@@ -121,11 +122,7 @@ function CajaPage() {
     return order;
   };
 
-  const payCash = () => {
-    if (!validate()) return;
-    createOrder("cash", "pending");
-    toast.success("Pedido confirmado — pagás al recibir");
-  };
+  // Pago en efectivo deshabilitado — solo Mercado Pago.
 
   const payMP = () => {
     if (!validate()) return;
@@ -276,13 +273,19 @@ function CajaPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs">Franja horaria</Label>
-                  <Select value={slotTime} onValueChange={setSlotTime}>
-                    <SelectTrigger className="mt-1.5"><Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" /><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {times.map((t) => <SelectItem key={t} value={t}>{t} hs</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-xs">Horario de entrega</Label>
+                  <div className="relative mt-1.5">
+                    <Clock className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="time"
+                      value={slotTime}
+                      min={OPEN_TIME}
+                      max={CLOSE_TIME}
+                      onChange={(e) => setSlotTime(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">Elegí cualquier hora entre {OPEN_TIME} y {CLOSE_TIME} hs.</p>
                 </div>
               </div>
             </Card>
@@ -314,15 +317,8 @@ function CajaPage() {
               >
                 <CreditCard className="h-4 w-4" /> Pagar con Mercado Pago
               </Button>
-              <Button
-                onClick={payCash}
-                variant="outline"
-                className="w-full mt-2 h-11 gap-2"
-              >
-                Pagar al recibir (efectivo)
-              </Button>
               <p className="text-[11px] text-muted-foreground mt-3 text-center">
-                Compra segura · sin registro
+                Compra segura · sin registro · pago 100% online
               </p>
             </Card>
           </div>
@@ -438,6 +434,16 @@ function SuccessScreen({ order, onNew }: { order: Order; onNew: () => void }) {
         </table>
         <div className="mt-4 flex justify-between font-semibold text-lg">
           <span>Total</span><span>${order.total.toLocaleString("es-AR")}</span>
+        </div>
+
+        <div className="mt-5 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-4">
+          <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">Clave de entrega</div>
+          <div className="font-mono font-black text-3xl sm:text-4xl tracking-widest text-primary mt-1">{order.deliveryCode}</div>
+          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+            <strong className="text-foreground">Instrucciones:</strong> Cuando el repartidor llegue a tu domicilio,
+            decile esta clave <strong className="text-foreground">antes</strong> de recibir tu pedido. Es tu comprobante
+            de seguridad — no la compartas con nadie más y guardala hasta recibir la mercadería.
+          </p>
         </div>
       </div>
 

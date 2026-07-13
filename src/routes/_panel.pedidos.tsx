@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { ClipboardList, Package, Phone, MapPin, Calendar, CreditCard, Banknote } from "lucide-react";
+import { ClipboardList, Package, Phone, MapPin, Calendar, CreditCard, Banknote, KeyRound } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -53,9 +53,26 @@ function PedidosPage() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">Pedidos</h1>
-          <p className="text-muted-foreground mt-1">
-            {orders.length} pedidos · {pending} activos · ${revenue.toLocaleString("es-AR")} cobrado
-          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge className="bg-primary/15 text-primary border-primary/30 border rounded-full px-3 py-1 text-sm font-semibold">
+              <ClipboardList className="h-3.5 w-3.5 mr-1.5" />
+              {orders.length} {orders.length === 1 ? "pedido" : "pedidos"}
+            </Badge>
+            <Badge
+              className={`border rounded-full px-3 py-1 text-sm font-semibold ${
+                pending > 0
+                  ? "bg-warning/20 text-warning-foreground border-warning/40 animate-pulse"
+                  : "bg-success/15 text-success border-success/30"
+              }`}
+            >
+              <Package className="h-3.5 w-3.5 mr-1.5" />
+              {pending} {pending === 1 ? "activo" : "activos"}
+            </Badge>
+            <Badge className="bg-success/15 text-success border-success/30 border rounded-full px-3 py-1 text-sm font-semibold">
+              <CreditCard className="h-3.5 w-3.5 mr-1.5" />
+              ${revenue.toLocaleString("es-AR")} cobrado
+            </Badge>
+          </div>
         </div>
         <Button variant="outline" onClick={() => navigate({ to: "/tienda-online" })}>
           Abrir tienda online
@@ -142,17 +159,34 @@ function OrderCard({ order, onUpdate }: { order: Order; onUpdate: (p: Partial<Or
         </div>
       </div>
 
+      <div className="mt-4 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-3 flex items-center gap-3">
+        <KeyRound className="h-5 w-5 text-primary shrink-0" />
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">Clave de entrega</div>
+          <div className="font-mono font-black text-lg sm:text-xl tracking-widest text-primary">
+            {order.deliveryCode ?? "—"}
+          </div>
+        </div>
+        <div className="text-[11px] text-muted-foreground ml-auto text-right hidden sm:block max-w-[220px]">
+          El cliente debe decir esta clave al repartidor antes de recibir el pedido.
+        </div>
+      </div>
+
       <div className="mt-4">
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
           <Package className="h-3 w-3 inline mr-1" /> {order.lines.length} productos
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:grid-cols-2">
           {order.lines.map((l) => (
-            <div key={l.productId} className="flex items-center gap-2 rounded-lg border bg-card p-2 pr-3">
-              <img src={l.image} alt="" className="h-8 w-8 rounded object-cover" />
-              <div>
-                <div className="text-xs font-medium leading-tight max-w-[180px] truncate">{l.name}</div>
-                <div className="text-[10px] text-muted-foreground">×{l.qty} · ${(l.price * l.qty).toLocaleString("es-AR")}</div>
+            <div key={l.productId} className="flex items-center gap-3 rounded-lg border bg-card p-2 pr-3">
+              <img src={l.image} alt="" className="h-12 w-12 rounded object-cover shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium leading-tight truncate">{l.name}</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">${(l.price * l.qty).toLocaleString("es-AR")}</div>
+              </div>
+              <div className="shrink-0 flex flex-col items-center justify-center rounded-lg bg-primary/10 text-primary px-2.5 py-1 min-w-[52px]">
+                <div className="font-display font-black text-2xl leading-none">×{l.qty}</div>
+                <div className="text-[9px] uppercase tracking-wider opacity-70 mt-0.5">u</div>
               </div>
             </div>
           ))}
