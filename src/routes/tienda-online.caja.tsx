@@ -435,6 +435,16 @@ function SuccessScreen({ order, onNew }: { order: Order; onNew: () => void }) {
         <div className="mt-4 flex justify-between font-semibold text-lg">
           <span>Total</span><span>${order.total.toLocaleString("es-AR")}</span>
         </div>
+
+        <div className="mt-5 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-4">
+          <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">Clave de entrega</div>
+          <div className="font-mono font-black text-3xl sm:text-4xl tracking-widest text-primary mt-1">{order.deliveryCode}</div>
+          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+            <strong className="text-foreground">Instrucciones:</strong> Cuando el repartidor llegue a tu domicilio,
+            decile esta clave <strong className="text-foreground">antes</strong> de recibir tu pedido. Es tu comprobante
+            de seguridad — no la compartas con nadie más y guardala hasta recibir la mercadería.
+          </p>
+        </div>
       </div>
 
       <div className="mt-6 flex flex-col sm:flex-row gap-2">
