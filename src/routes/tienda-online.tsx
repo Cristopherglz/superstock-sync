@@ -65,9 +65,7 @@ function Footer() {
           <ShieldCheck className="h-4 w-4 text-success" />
           Compra sin cuenta · envío a domicilio
         </div>
-        <Link to="/auth" className="hover:text-foreground transition">
-          Panel de control interno →
-        </Link>
+        <div className="text-xs">© {new Date().getFullYear()} Nimbus Market</div>
       </div>
     </footer>
   );
