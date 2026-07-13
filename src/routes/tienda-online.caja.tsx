@@ -47,22 +47,22 @@ export const Route = createFileRoute("/tienda-online/caja")({
 const WHATSAPP_NUMBER = "+54 9 11 5678-9010";
 const WHATSAPP_LINK = "https://wa.me/5491156789010";
 
-// Delivery slots: Mon-Sat, 9-20hs
-function buildDeliveryOptions() {
+// Delivery slots: Mon-Sat (skip Sunday). Cliente elige la hora libremente entre 9 y 20 hs.
+const OPEN_TIME = "09:00";
+const CLOSE_TIME = "20:00";
+
+function buildDeliveryDays() {
   const days: { value: string; label: string }[] = [];
   const now = new Date();
-  for (let i = 1; i <= 10 && days.length < 6; i++) {
+  for (let i = 1; i <= 14 && days.length < 10; i++) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
-    const dow = d.getDay(); // 0=sun..6=sat
-    if (dow === 0) continue; // skip Sunday
+    if (d.getDay() === 0) continue; // skip Sunday
     const iso = d.toISOString().slice(0, 10);
     const label = d.toLocaleDateString("es-AR", { weekday: "long", day: "2-digit", month: "short" });
     days.push({ value: iso, label: label.charAt(0).toUpperCase() + label.slice(1) });
   }
-  const times: string[] = [];
-  for (let h = 9; h <= 20; h++) times.push(`${String(h).padStart(2, "0")}:00`);
-  return { days, times };
+  return days;
 }
 
 function CajaPage() {
