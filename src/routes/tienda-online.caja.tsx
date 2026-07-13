@@ -70,7 +70,7 @@ function CajaPage() {
   const navigate = useNavigate();
   const [placed, setPlaced] = useState<Order | null>(null);
   const [form, setForm] = useState<CustomerInfo>(customer);
-  const { days, times } = buildDeliveryOptions();
+  const days = buildDeliveryDays();
   const [slotDate, setSlotDate] = useState(days[0]?.value ?? "");
   const [slotTime, setSlotTime] = useState("10:00");
   const [mpOpen, setMpOpen] = useState(false);
@@ -98,6 +98,7 @@ function CajaPage() {
     }
     if (form.wantsInvoice && !form.cuit) { toast.error("Ingresá tu CUIT para la factura"); return false; }
     if (!slotDate || !slotTime) { toast.error("Elegí día y horario de entrega"); return false; }
+    if (slotTime < OPEN_TIME || slotTime > CLOSE_TIME) { toast.error(`El horario debe estar entre ${OPEN_TIME} y ${CLOSE_TIME} hs`); return false; }
     if (lines.length === 0) return false;
     return true;
   };
@@ -121,11 +122,7 @@ function CajaPage() {
     return order;
   };
 
-  const payCash = () => {
-    if (!validate()) return;
-    createOrder("cash", "pending");
-    toast.success("Pedido confirmado — pagás al recibir");
-  };
+  // Pago en efectivo deshabilitado — solo Mercado Pago.
 
   const payMP = () => {
     if (!validate()) return;
