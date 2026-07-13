@@ -164,18 +164,23 @@ function FloatingCart() {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       style={{ left: pos.x, top: pos.y, touchAction: "none" }}
-      className={`fixed z-40 select-none cursor-grab active:cursor-grabbing rounded-2xl text-white shadow-elevated flex items-center gap-3 transition-transform animated-border ${
+      className={`fixed z-40 select-none cursor-grab active:cursor-grabbing rounded-2xl text-white shadow-elevated transition-transform animated-border animate-[cart-float_3s_ease-in-out_infinite] ${
         pulse ? "scale-110" : "scale-100"
       }`}
     >
-      <div className="rounded-[14px] bg-gradient-brand px-4 py-3 flex items-center gap-3">
+      {/* glow halo */}
+      <div className="pointer-events-none absolute -inset-1 rounded-3xl bg-gradient-brand opacity-40 blur-xl animate-[cart-glow_2.4s_ease-in-out_infinite]" />
+      <div className="relative rounded-[14px] bg-gradient-brand px-4 py-3 flex items-center gap-3 overflow-hidden">
+        {/* shine sweep */}
+        <div className="pointer-events-none absolute inset-0 -translate-x-full animate-[cart-shine_2.8s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
         <div className="relative">
-          <ShoppingCart className="h-5 w-5" />
+          <ShoppingCart className="h-5 w-5 animate-[cart-wiggle_2.2s_ease-in-out_infinite]" />
           <span className="absolute -top-2 -right-2 h-5 min-w-5 px-1 rounded-full bg-white text-primary text-[10px] font-bold flex items-center justify-center shadow">
             {items}
           </span>
+          <Sparkles className="absolute -top-3 -left-3 h-3 w-3 text-yellow-200 animate-[cart-sparkle_1.6s_ease-in-out_infinite]" />
         </div>
-        <div className="leading-tight">
+        <div className="leading-tight relative">
           <div className="text-[10px] uppercase tracking-wider opacity-80">Ir a caja</div>
           <div className="font-display font-bold">${total.toLocaleString("es-AR")}</div>
         </div>
