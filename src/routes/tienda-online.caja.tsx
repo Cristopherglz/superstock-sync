@@ -273,13 +273,19 @@ function CajaPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs">Franja horaria</Label>
-                  <Select value={slotTime} onValueChange={setSlotTime}>
-                    <SelectTrigger className="mt-1.5"><Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" /><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {times.map((t) => <SelectItem key={t} value={t}>{t} hs</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-xs">Horario de entrega</Label>
+                  <div className="relative mt-1.5">
+                    <Clock className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="time"
+                      value={slotTime}
+                      min={OPEN_TIME}
+                      max={CLOSE_TIME}
+                      onChange={(e) => setSlotTime(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">Elegí cualquier hora entre {OPEN_TIME} y {CLOSE_TIME} hs.</p>
                 </div>
               </div>
             </Card>
@@ -311,15 +317,8 @@ function CajaPage() {
               >
                 <CreditCard className="h-4 w-4" /> Pagar con Mercado Pago
               </Button>
-              <Button
-                onClick={payCash}
-                variant="outline"
-                className="w-full mt-2 h-11 gap-2"
-              >
-                Pagar al recibir (efectivo)
-              </Button>
               <p className="text-[11px] text-muted-foreground mt-3 text-center">
-                Compra segura · sin registro
+                Compra segura · sin registro · pago 100% online
               </p>
             </Card>
           </div>
