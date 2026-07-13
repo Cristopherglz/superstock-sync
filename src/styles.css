@@ -162,14 +162,36 @@
   0% { background-position: 0% 50%; }
   100% { background-position: 200% 50%; }
 }
+@keyframes cart-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-6px) rotate(1deg); }
+}
+@keyframes cart-glow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.08); }
+}
+@keyframes cart-shine {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(100%); }
+}
+@keyframes cart-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+@keyframes cart-sparkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+}
 @utility animated-border {
   position: relative;
   background:
     linear-gradient(var(--gradient-brand)) padding-box,
-    linear-gradient(90deg, oklch(0.9 0.15 200), oklch(1 0 0), oklch(0.9 0.15 200), oklch(1 0 0)) border-box;
-  background-size: auto, 200% 100%;
+    linear-gradient(90deg, oklch(0.9 0.15 200), oklch(1 0 0), oklch(0.9 0.15 60), oklch(0.9 0.15 320), oklch(0.9 0.15 200)) border-box;
+  background-size: auto, 300% 100%;
   border: 2px solid transparent;
-  animation: cart-border 2.5s linear infinite;
+  animation: cart-border 3s linear infinite;
 }
+
 
 
